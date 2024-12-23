@@ -1,0 +1,12 @@
+# Node.js の依存関係
+node_modules/
+
+# ログファイル
+*.log
+
+# OS固有のファイル
+.DS_Store
+Thumbs.db
+
+# npm のパッケージロックファイルを無視する場合（推奨しません）
+# package-lock.json

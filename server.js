@@ -1,6 +1,6 @@
 import express from 'express';
 import puppeteer from 'puppeteer-core';
-import chrome from 'chrome-aws-lambda';  // chrome-aws-lambdaをインポート
+import chrome from 'chrome-aws-lambda';  // chrome-aws-lambda をインポート
 import path from 'path';
 
 const app = express();
@@ -24,13 +24,14 @@ app.post('/fetch-url', async (req, res) => {
 
     let browser;
     try {
+        // chrome-aws-lambdaの設定を適用
         const browserOptions = {
-            executablePath: await chrome.executablePath,  // chrome-aws-lambdaが提供するChromeのパス
-            args: chrome.args,  // chrome-aws-lambdaの引数
+            executablePath: await chrome.executablePath,  // chrome-aws-lambda が提供する Chrome のパス
+            args: chrome.args,  // chrome-aws-lambda の引数
             headless: chrome.headless,  // ヘッドレスモード
         };
 
-        browser = await puppeteer.launch(browserOptions);  // puppeteerを起動
+        browser = await puppeteer.launch(browserOptions);  // puppeteer を起動
         const page = await browser.newPage();
 
         console.log('Navigating to URL:', url);
