@@ -1,7 +1,7 @@
 import express from 'express';
-import puppeteer from 'puppeteer-core';  // puppeteer-coreを使用
+import puppeteer from 'puppeteer-core';
+import chrome from 'chrome-aws-lambda';  // chrome-aws-lambdaをインポート
 import path from 'path';
-import chrome from 'chrome-aws-lambda';  // chrome-aws-lambdaを使用
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,9 +24,8 @@ app.post('/fetch-url', async (req, res) => {
 
     let browser;
     try {
-        // Puppeteerの設定にchrome-aws-lambdaを使用
         const browserOptions = {
-            executablePath: await chrome.executablePath,  // Renderで使用するChromeのパス
+            executablePath: await chrome.executablePath,  // chrome-aws-lambdaが提供するChromeのパス
             args: chrome.args,  // chrome-aws-lambdaの引数
             headless: chrome.headless,  // ヘッドレスモード
         };
@@ -34,9 +33,12 @@ app.post('/fetch-url', async (req, res) => {
         browser = await puppeteer.launch(browserOptions);  // puppeteerを起動
         const page = await browser.newPage();
 
-        await page.goto(url, { waitUntil: 'networkidle0' });
+        console.log('Navigating to URL:', url);
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-        await page.waitForSelector('#react-root', { timeout: 5000 }).catch(() => {
+        console.log('Waiting for #react-root...');
+        await page.waitForSelector('#react-root', { timeout: 10000 }).catch((err) => {
+            console.error('Error waiting for selector:', err);
             throw new Error("Failed to locate #react-root on the page.");
         });
 
@@ -56,13 +58,12 @@ app.post('/fetch-url', async (req, res) => {
         res.json({ cleanedText, imageSrcs });
     } catch (error) {
         console.error(`Error processing URL: ${error.message}`, error);
-        res.status(500).json({ error: 'Failed to process the URL.' });
+        res.status(500).json({ error: `Failed to process the URL: ${error.message}` });
     } finally {
         if (browser) await browser.close();
     }
 });
 
-// Renderでは環境変数PORTを使用
 app.listen(PORT, () => {
-    console.log(`Server is running`);
+    console.log(`Server is running at http://localhost:${PORT}`);
 });
