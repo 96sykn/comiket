@@ -1,9 +1,10 @@
 import express from 'express';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';  // puppeteer-coreを使用
 import path from 'path';
+import chrome from 'chrome-aws-lambda';  // chrome-aws-lambdaを使用
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
@@ -23,7 +24,14 @@ app.post('/fetch-url', async (req, res) => {
 
     let browser;
     try {
-        browser = await puppeteer.launch({ headless: true });
+        // Puppeteerの設定にchrome-aws-lambdaを使用
+        const browserOptions = {
+            executablePath: await chrome.executablePath,  // Renderで使用するChromeのパス
+            args: chrome.args,  // chrome-aws-lambdaの引数
+            headless: chrome.headless,  // ヘッドレスモード
+        };
+
+        browser = await puppeteer.launch(browserOptions);  // puppeteerを起動
         const page = await browser.newPage();
 
         await page.goto(url, { waitUntil: 'networkidle0' });
@@ -54,6 +62,7 @@ app.post('/fetch-url', async (req, res) => {
     }
 });
 
+// Renderでは環境変数PORTを使用
 app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
+    console.log(`Server is running`);
 });
