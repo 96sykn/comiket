@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Fetcher</title>
+</head>
+<body>
+    <h1>URLから情報を取得</h1>
+    <form id="urlForm">
+        <label for="urlInput">URLを入力:</label>
+        <input type="text" id="urlInput" name="url" required>
+        <button type="submit">送信</button>
+    </form>
+
+    <div id="result">
+        <h2>取得した情報</h2>
+        <h3>Text:</h3>
+        <pre id="cleanedText"></pre>
+        <h3>Images:</h3>
+        <ul id="imageList"></ul>
+    </div>
+
+    <script>
+        document.getElementById('urlForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const url = document.getElementById('urlInput').value;
+            if (!url) {
+                alert("URLを入力してください。");
+                return;
+            }
+
+            try {
+                // サーバーにPOSTリクエストを送信
+                const response = await fetch('/fetch-url', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
+                const data = await response.json();
+
+                // 結果をHTMLに表示
+                document.getElementById('cleanedText').textContent = data.cleanedText;
+
+                const imageList = document.getElementById('imageList');
+                imageList.innerHTML = ''; // 前回の結果をクリア
+                data.imageSrcs.forEach(src => {
+                    const li = document.createElement('li');
+                    const img = document.createElement('img');
+                    img.src = src;
+                    li.appendChild(img);
+                    imageList.appendChild(li);
+                });
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
